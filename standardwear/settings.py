@@ -26,6 +26,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: [
 
 # Custom auth user model
 AUTH_USER_MODEL = 'users.User'
+LOGIN_URL = '/admin/login/'
 
 
 # Application definition
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
     # third party
     'mjml',
     'rest_framework',
+    'oauth2_provider',
 ]
 
 MIDDLEWARE = [
@@ -58,6 +60,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
 ]
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+    ]
+}
 
 # Cache
 CACHES = {
