@@ -45,6 +45,7 @@ INSTALLED_APPS = [
 
     # third party
     'mjml',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
