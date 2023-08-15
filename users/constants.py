@@ -28,3 +28,15 @@ ADDRESS_TYPE_CHOICES = (
     (BILLING_ADDRESS, 'Billing Address'),
     (SHIPPING_ADDRESS, 'Shipping Address'),
 )
+
+
+# membership
+MEMBERSHIP_FREE = 1
+MEMBERSHIP_BASIC = 2
+MEMBERSHIP_PREMIUM = 3
+
+MEMBERSHIP_TYPE_CHOICES = (
+    (MEMBERSHIP_FREE, 'Free'),
+    (MEMBERSHIP_BASIC, 'Basic'),
+    (MEMBERSHIP_PREMIUM, 'Premium'),
+)

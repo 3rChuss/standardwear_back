@@ -37,8 +37,6 @@ class UserProfile(models.Model):
     language = models.CharField(_('language'), max_length=12,
                                 choices=user_constants.LANGUAGE_CHOICES, default=user_constants.SPANISH)
     avatar = models.ImageField(_('avatar'), upload_to=upload_to, blank=True)
-    first_name = models.CharField(_('first name'), max_length=30, blank=True)
-    last_name = models.CharField(_('last name'), max_length=150, blank=True)
     nie = models.CharField(_('nie'), max_length=9, blank=True)
     accepted_terms = models.BooleanField(_('accepted terms'), default=False)
     accepted_privacy = models.BooleanField(
@@ -69,3 +67,32 @@ class UserAddress(models.Model):
 
     def __str__(self):
         return self.address
+
+
+class UserMembership(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='memberships')
+    membership_type = models.IntegerField(_('membership type'),
+                                          choices=user_constants.MEMBERSHIP_TYPE_CHOICES, default=user_constants.MEMBERSHIP_FREE)
+    membership_start = models.DateTimeField(
+        _('membership start'), default=timezone.now)
+    membership_end = models.DateTimeField(
+        _('membership end'), default=timezone.now)
+    created_at = models.DateTimeField(
+        _('created at'), default=timezone.now)
+    updated_at = models.DateTimeField(
+        _('updated at'), default=timezone.now)
+
+    class Meta:
+        verbose_name = _('membership')
+        verbose_name_plural = _('memberships')
+        ordering = ('-created_at',)
+
+    def __str__(self):
+        return self.user.email
+
+    def get_status(self):
+        if self.membership_end > timezone.now():
+            return True
+        else:
+            return False

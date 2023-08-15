@@ -1,9 +1,13 @@
 # users/admin.py
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from .models import UserProfile, User, UserAddress
-from .forms import CustomUserCreationForm, CustomUserChangeForm
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.utils.html import format_html
+
+from django.contrib.auth.admin import UserAdmin
+from .models import UserProfile, User, UserAddress, UserMembership
+from .forms import CustomUserCreationForm, CustomUserChangeForm
+from . import constants as user_constants
 
 
 class UserProfileInline(admin.StackedInline):
@@ -73,5 +77,37 @@ class CustomUserAddressAdmin(admin.ModelAdmin):
     search_fields = ('user', 'address_type', 'address', 'city', 'province',)
 
 
+class CustomMembershipAdmin(admin.ModelAdmin):
+    list_display = ('user', 'membership_type', 'membership_start',
+                    'membership_end', 'get_membership_status',)
+    list_filter = ('user', 'membership_type', 'membership_start',
+                   'membership_end', )
+    search_fields = ('user', 'membership_type', 'membership_start',
+                     'membership_end', 'get_membership_status',)
+
+    def get_membership_status(self, obj):
+        if obj.membership_type == user_constants.MEMBERSHIP_FREE:
+            return format_html(
+                '<span style="color: #{};">{}</span>',
+                'FF0000',
+                'Free'
+            )
+        if obj.membership_end < timezone.now():
+            return format_html(
+                '<span style="color: #{};">{}</span>',
+                'FF0000',
+                'Expired'
+            )
+        else:
+            return format_html(
+                '<span style="color: #{};">{}</span>',
+                '008000',
+                'Active'
+            )
+
+    get_membership_status.short_description = 'Status'
+
+
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(UserAddress, CustomUserAddressAdmin)
+admin.site.register(UserMembership, CustomMembershipAdmin)

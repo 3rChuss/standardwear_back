@@ -21,7 +21,8 @@ SECRET_KEY = config('SECRET_KEY')
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: [
+                       s.strip() for s in v.split(',')])
 
 # Custom auth user model
 AUTH_USER_MODEL = 'users.User'
@@ -41,6 +42,9 @@ INSTALLED_APPS = [
     'users',
     'products',
     'gallery',
+
+    # third party
+    'mjml',
 ]
 
 MIDDLEWARE = [
@@ -54,6 +58,38 @@ MIDDLEWARE = [
     'django.middleware.locale.LocaleMiddleware',
 ]
 
+# Cache
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': config('REDIS_URLS', cast=lambda v: [
+            s.strip() for s in v.split(',')]),
+        "KEY_PREFIX": "swc",
+        "TIMEOUT": 60 * 60,  # in seconds: 60 * 60 = 1 hour
+    },
+    'gallery': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(BASE_DIR, 'caches/django_cache'),
+    },
+
+}
+
+# Cache time
+CACHE_TTL = 60 * 60 * 24  # in seconds: 60 * 60 * 24 = 1 day
+
+# Email
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = config('EMAIL_PORT', cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
+
+
+MJML_BACKEND_MODE = "cmd"
+MJML_EXEC_CMD = os.path.join(BASE_DIR, 'node_modules/.bin/mjml.cmd')
+
+
 LOCALE_PATHS = (
     os.path.join(BASE_DIR, 'locale'),
 )
@@ -63,7 +99,7 @@ ROOT_URLCONF = 'standardwear.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['emailtemplates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
