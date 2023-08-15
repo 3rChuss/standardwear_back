@@ -277,3 +277,94 @@ class ProductReview(models.Model):
 
     def get_absolute_url(self):
         return reverse('products:detail', kwargs={'slug': self.slug})
+
+
+# area -> technique -> product
+# a product can have many techniques
+# a technique can have many areas
+
+
+class Area(models.Model):
+    name = models.CharField(_('name'), max_length=100, unique=True, help_text=_(
+        'Name of the area to engrave, e.g. "Front" or "Back"'))
+    slug = models.SlugField(_('slug'), max_length=100, unique=True)
+    height = models.DecimalField(
+        _('height'), max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    width = models.DecimalField(
+        _('width'), max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    description = models.TextField(_('description'), blank=True)
+    is_active = models.BooleanField(_('active'), default=True)
+    created_at = models.DateTimeField(_('created at'), default=timezone.now)
+    updated_at = models.DateTimeField(_('updated at'), default=timezone.now)
+
+    class Meta:
+        verbose_name = _('engraving area')
+        verbose_name_plural = _('engraving areas')
+        ordering = ('updated_at', 'name',)
+
+    def __str__(self):
+        return self.name
+
+
+class AreaImage(models.Model):
+    area = models.ForeignKey(
+        'Area', on_delete=models.CASCADE, related_name='images')
+    image = models.ForeignKey(
+        'gallery.Gallery', on_delete=models.CASCADE, related_name='area_images')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _('area image')
+        verbose_name_plural = _('area images')
+        ordering = ('-area',)
+
+    def __str__(self):
+        return self.image.title
+
+
+class Technique(models.Model):
+    name = models.CharField(_('name'), max_length=100, unique=True, help_text=_(
+        'Name of the technique to engrave, e.g. "Laser" or "Embroidery"'))
+    slug = models.SlugField(_('slug'), max_length=100, unique=True)
+    description = models.TextField(_('description'), blank=True)
+    is_active = models.BooleanField(_('active'), default=True)
+    areas = models.ManyToManyField(
+        'Area', related_name='techniques', verbose_name=_('areas'))
+    created_at = models.DateTimeField(_('created at'), default=timezone.now)
+    updated_at = models.DateTimeField(_('updated at'), default=timezone.now)
+
+    class Meta:
+        verbose_name = _('technique')
+        verbose_name_plural = _('techniques')
+        ordering = ('updated_at', 'name',)
+
+    def __str__(self):
+        return self.name
+
+
+class ProductEngraving(models.Model):
+    product = models.ForeignKey(
+        'Product', on_delete=models.CASCADE, related_name='engravings')
+    area = models.ForeignKey(
+        'Area', on_delete=models.CASCADE, related_name='engravings')
+    technique = models.ForeignKey(
+        'Technique', on_delete=models.CASCADE, related_name='engravings')
+    price = models.DecimalField(
+        _('price'), max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    is_active = models.BooleanField(_('active'), default=True)
+    created_at = models.DateTimeField(_('created at'), default=timezone.now)
+    updated_at = models.DateTimeField(_('updated at'), default=timezone.now)
+
+    class Meta:
+        verbose_name = _('product engraving')
+        verbose_name_plural = _('product engravings')
+        ordering = ('updated_at', 'product',)
+        indexes = [
+            models.Index(fields=['product', 'area', 'technique']),
+        ]
+
+    def __str__(self):
+        return self.product.name
+
+    #  price per range, minumun [500, 1000, 2000, 5000, 10000, 20000, +20000] //TODO: add to cart
