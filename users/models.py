@@ -9,7 +9,7 @@ from .managers import UserManager
 
 
 def upload_to(instance, filename):
-    return 'media/avatars/{id}/{filename}'.format(id=instance.pk, filename=filename)
+    return 'users/{}/{}'.format(instance.user.id, filename)
 
 
 class User(AbstractUser):

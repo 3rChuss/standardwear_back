@@ -14,6 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from decouple import config
+from django.conf import settings
 from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
@@ -27,3 +28,9 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 ]
+
+if settings.DEBUG:
+    #  serve images
+    from django.conf.urls.static import static
+    urlpatterns += static(settings.MEDIA_URL,
+                          document_root=settings.MEDIA_ROOT)

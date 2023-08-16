@@ -25,8 +25,8 @@ class CustomUserAdmin(UserAdmin):
     search_fields = ('email',)
     ordering = ('email',)
     inlines = (UserProfileInline,)
-    list_display = ('email', 'is_staff', 'is_active', 'is_superuser',
-                    'user_type', 'get_nie', 'get_first_name', 'get_last_name', 'get_phone', 'get_avatar')
+    list_display = ('get_avatar', 'email', 'is_staff', 'is_active', 'is_superuser',
+                    'user_type', 'get_nie', 'first_name', 'last_name', 'get_phone', )
     list_filter = ('email', 'is_staff', 'is_active',
                    'is_superuser', 'user_type')
     fieldsets = (
@@ -54,20 +54,18 @@ class CustomUserAdmin(UserAdmin):
         return obj.profile.nie
     get_nie.short_description = 'NIE'
 
-    def get_first_name(self, obj):
-        return obj.profile.first_name
-    get_first_name.short_description = 'First name'
-
-    def get_last_name(self, obj):
-        return obj.profile.last_name
-    get_last_name.short_description = 'Last name'
-
     def get_phone(self, obj):
         return obj.profile.phone
     get_phone.short_description = 'Phone'
 
     def get_avatar(self, obj):
-        return obj.profile.avatar
+        # image with link to edit
+        return format_html(
+            '<a href="{}"><img src="{}" width="50" height="50" /></a>',
+            '/admin/users/user/{}/change/'.format(obj.id),
+            obj.profile.avatar.url if obj.profile.avatar else '/staticfiles/img/default_avatar.png',
+        )
+
     get_avatar.short_description = 'Avatar'
 
 

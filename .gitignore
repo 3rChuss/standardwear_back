@@ -32,6 +32,9 @@ share/python-wheels/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+media
+static
+staticfiles
 
 # Flask stuff:
 instance/
