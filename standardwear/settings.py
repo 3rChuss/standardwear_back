@@ -39,15 +39,16 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # third party
+    'mjml',
+    'rest_framework',
+    'drf_yasg',
+    'oauth2_provider',
+
     # apps
     'users',
     'products',
     'gallery',
-
-    # third party
-    'mjml',
-    'rest_framework',
-    'oauth2_provider',
 ]
 
 MIDDLEWARE = [
@@ -65,7 +66,10 @@ MIDDLEWARE = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
-    ]
+    ],
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
 
 # Cache
@@ -86,6 +90,28 @@ CACHES = {
 
 # Cache time
 CACHE_TTL = 60 * 60 * 24  # in seconds: 60 * 60 * 24 = 1 day
+
+
+# SWAGGER
+SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': False,
+    'SECURITY_DEFINITIONS': {
+        'Your App API - Swagger': {
+            'type': 'oauth2',
+            'authorizationUrl': '/yourapp/o/authorize',
+            'tokenUrl': '/yourapp/o/token/',
+            'flow': 'accessCode',
+            'scopes': {
+                'read:groups': 'read groups',
+            }
+        }
+    },
+    'OAUTH2_CONFIG': {
+        'clientId': 'yourAppClientId',
+        'clientSecret': 'yourAppClientSecret',
+        'appName': 'your application name'
+    },
+}
 
 # Email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

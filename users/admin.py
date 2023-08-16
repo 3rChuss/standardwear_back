@@ -52,7 +52,7 @@ class CustomUserAdmin(UserAdmin):
 
     def get_nie(self, obj):
         return obj.profile.nie
-    get_nie.short_description = 'NIE'
+    get_nie.short_description = _('NIE')
 
     def get_phone(self, obj):
         return obj.profile.phone
