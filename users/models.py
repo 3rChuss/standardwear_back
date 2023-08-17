@@ -34,8 +34,8 @@ class UserProfile(models.Model):
     is_verified = models.BooleanField(_('verified'), default=False)
     created_at = models.DateTimeField(_('created at'), default=timezone.now)
     updated_at = models.DateTimeField(_('updated at'), default=timezone.now)
-    language = models.CharField(_('language'), max_length=12,
-                                choices=user_constants.LANGUAGE_CHOICES, default=user_constants.SPANISH)
+    language = models.ForeignKey(
+        'translations.Language', on_delete=models.DO_NOTHING, related_name='user_profiles', null=True, blank=True)
     avatar = models.ImageField(_('avatar'), upload_to=upload_to, blank=True)
     nie = models.CharField(_('nie'), max_length=9, blank=True)
     accepted_terms = models.BooleanField(_('accepted terms'), default=False)

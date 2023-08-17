@@ -60,6 +60,7 @@ class CustomUserAdmin(UserAdmin):
 
     def get_avatar(self, obj):
         # image with link to edit
+
         return format_html(
             '<a href="{}"><img src="{}" width="50" height="50" /></a>',
             '/admin/users/user/{}/change/'.format(obj.id),

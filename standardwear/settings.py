@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'users',
     'products',
     'gallery',
+    'translations',
 ]
 
 MIDDLEWARE = [
@@ -191,6 +192,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Spanish
 LANGUAGE_CODE = 'es'
+
+FIXTURE_DIRS = (
+    os.path.join(BASE_DIR, 'fixtures'),
+)
 
 TIME_ZONE = 'UTC'
 

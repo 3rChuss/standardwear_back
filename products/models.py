@@ -1,10 +1,10 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-from django.urls import reverse
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.utils.text import slugify
 
 from . import constants as product_constants
 
@@ -24,40 +24,60 @@ def get_upload_data_sheet_path(instance, filename):
 
 # Create your models here.
 
+
 class Product(models.Model):
-    name = models.CharField(_('name'), max_length=100)
-    slug = models.SlugField(_('slug'), max_length=100, unique=True)
-    title = models.CharField(_('title'), max_length=100)
-    description = models.TextField(_('description'), blank=True)
     is_published = models.BooleanField(_('published'), default=False)
-    status = models.IntegerField(
-        _('status'), choices=product_constants.PRODUCT_STATUS_CHOICES, default=product_constants.NEW)
     reference = models.CharField(
         _('reference'), max_length=100, null=False, blank=False, unique=True)
-    brand = models.CharField(
-        _('provider'), max_length=100, default='Standard Wear')
-    data_sheet = models.FileField(
-        _('data sheet'), upload_to=get_upload_data_sheet_path, null=True, blank=True)
     created_at = models.DateTimeField(_('created at'), default=timezone.now)
     updated_at = models.DateTimeField(_('updated at'), default=timezone.now)
 
     class Meta:
         verbose_name = _('product')
         verbose_name_plural = _('products')
-        ordering = ('updated_at', 'name',)
+        ordering = ('updated_at',)
+
+    def __str__(self):
+        return self.pk
+
+
+class ProductTranslation(models.Model):
+    product = models.ForeignKey(
+        'Product', on_delete=models.CASCADE, related_name='translations')
+    language = models.ForeignKey(
+        'translations.Language', on_delete=models.CASCADE, related_name='products')
+    name = models.CharField(_('name'), max_length=150)
+    description = models.TextField(_('description'), blank=True)
+    status = models.IntegerField(
+        _('status'), choices=product_constants.PRODUCT_STATUS_CHOICES, default=product_constants.NEW)
+    brand = models.CharField(
+        _('provider'), max_length=100, default='Standard Wear')
+    data_sheet = models.FileField(
+        _('data sheet'), upload_to=get_upload_data_sheet_path, null=True, blank=True)
+    created_at = models.DateTimeField(_('created at'), default=timezone.now)
+    updated_at = models.DateTimeField(_('updated at'), default=timezone.now)
+    slug = models.SlugField(_('slug'), max_length=100,
+                            unique=True, editable=False)
+
+    class Meta:
+        verbose_name = _('product translation')
+        verbose_name_plural = _('product translations')
+        ordering = ('-product', 'language',)
+        indexes = [
+            models.Index(fields=['product', 'language']),
+        ]
 
     def __str__(self):
         return self.name
 
-    def get_absolute_url(self):
-        return reverse('products:detail', kwargs={'slug': self.slug})
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(ProductTranslation, self).save(*args, **kwargs)
 
 
 class ProductVariant(models.Model):
     product = models.ForeignKey(
         'Product', on_delete=models.CASCADE, related_name='variants', null=False, blank=False)
-    name = models.CharField(_('name'), max_length=100)
-    slug = models.SlugField(_('slug'), max_length=100, unique=True)
     reference = models.CharField(
         _('reference'), max_length=100, null=False, blank=False, unique=True)
     price = models.DecimalField(
@@ -78,10 +98,36 @@ class ProductVariant(models.Model):
     class Meta:
         verbose_name = _('product variant')
         verbose_name_plural = _('product variants')
-        ordering = ('updated_at', 'name',)
+        ordering = ('updated_at',)
+
+    def __str__(self):
+        return self.reference
+
+
+class ProductVariantTranslation(models.Model):
+    variant = models.ForeignKey(
+        'ProductVariant', on_delete=models.CASCADE, related_name='translations')
+    language = models.ForeignKey(
+        'translations.Language', on_delete=models.CASCADE, related_name='product_variants')
+    name = models.CharField(_('name'), max_length=100)
+    description = models.TextField(_('description'), blank=True)
+    slug = models.SlugField(_('slug'), max_length=100,
+                            unique=True, editable=False)
+
+    class Meta:
+        verbose_name = _('product variant translation')
+        verbose_name_plural = _('product variant translations')
+        ordering = ('-variant', 'language',)
+        indexes = [
+            models.Index(fields=['variant', 'language']),
+        ]
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(ProductVariantTranslation, self).save(*args, **kwargs)
 
 
 class ProductImage(models.Model):
@@ -104,11 +150,8 @@ class ProductImage(models.Model):
 
 
 class Category(models.Model):
-    name = models.CharField(_('name'), max_length=100)
-    slug = models.SlugField(_('slug'), max_length=100, unique=True)
     parent_category = models.ForeignKey(
         'self', on_delete=models.CASCADE, related_name='subcategory', null=True, blank=True)
-    description = models.TextField(_('description'), blank=True)
     image = models.ForeignKey(
         'CategoryImage', on_delete=models.SET_NULL, related_name='image', null=True, blank=True)
     show_in_menu = models.BooleanField(_('show in menu'), default=True)
@@ -119,10 +162,36 @@ class Category(models.Model):
     class Meta:
         verbose_name = _('category')
         verbose_name_plural = _('categories')
-        ordering = ('updated_at', 'name',)
+        ordering = ('updated_at',)
+
+    def __str__(self):
+        return self.pk
+
+
+class CategoryTranslation(models.Model):
+    category = models.ForeignKey(
+        'Category', on_delete=models.CASCADE, related_name='translations')
+    language = models.ForeignKey(
+        'translations.Language', on_delete=models.CASCADE, related_name='categories')
+    name = models.CharField(_('name'), max_length=100)
+    description = models.TextField(_('description'), blank=True)
+    slug = models.SlugField(_('slug'), max_length=100,
+                            unique=True, editable=False)
+
+    class Meta:
+        verbose_name = _('category translation')
+        verbose_name_plural = _('category translations')
+        ordering = ('-category', 'language',)
+        indexes = [
+            models.Index(fields=['category', 'language']),
+        ]
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(CategoryTranslation, self).save(*args, **kwargs)
 
 
 class CategoryImage(models.Model):
@@ -143,9 +212,9 @@ class CategoryImage(models.Model):
 
 class ProductCategory(models.Model):
     product = models.ForeignKey(
-        'Product', on_delete=models.DO_NOTHING, related_name='categories')
+        'Product', on_delete=models.CASCADE, related_name='categories')
     category = models.ForeignKey(
-        'Category', on_delete=models.DO_NOTHING, related_name='products')
+        'Category', on_delete=models.CASCADE, related_name='products')
     created_at = models.DateTimeField(_('created at'), default=timezone.now)
     updated_at = models.DateTimeField(_('updated at'), default=timezone.now)
 
@@ -155,12 +224,10 @@ class ProductCategory(models.Model):
         ordering = ('-category',)
 
     def __str__(self):
-        return self.category.name
+        return self.pk
 
 
 class Color(models.Model):
-    name = models.CharField(_('name'), max_length=100)
-    slug = models.SlugField(_('slug'), max_length=100, unique=True)
     hex_code = models.CharField(
         _('hex code'), max_length=7, null=False, blank=False, unique=True)
     rgb_code = models.CharField(
@@ -176,15 +243,39 @@ class Color(models.Model):
     class Meta:
         verbose_name = _('color')
         verbose_name_plural = _('colors')
-        ordering = ('updated_at', 'name',)
+        ordering = ('updated_at', )
+
+    def __str__(self):
+        return self.pk
+
+
+class ColorTranslation(models.Model):
+    color = models.ForeignKey(
+        'Color', on_delete=models.CASCADE, related_name='translations')
+    language = models.ForeignKey(
+        'translations.Language', on_delete=models.CASCADE, related_name='colors')
+    name = models.CharField(_('name'), max_length=100)
+    description = models.TextField(_('description'), blank=True)
+    slug = models.SlugField(_('slug'), max_length=100,
+                            unique=True, editable=False)
+
+    class Meta:
+        verbose_name = _('color translation')
+        verbose_name_plural = _('color translations')
+        ordering = ('-color', 'language',)
+        indexes = [
+            models.Index(fields=['color', 'language']),
+        ]
 
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(ColorTranslation, self).save(*args, **kwargs)
+
 
 class Size(models.Model):
-    name = models.CharField(_('name'), max_length=100, unique=True)
-    slug = models.SlugField(_('slug'), max_length=100, unique=True)
     is_active = models.BooleanField(_('active'), default=True)
     created_at = models.DateTimeField(_('created at'), default=timezone.now)
     updated_at = models.DateTimeField(_('updated at'), default=timezone.now)
@@ -192,32 +283,82 @@ class Size(models.Model):
     class Meta:
         verbose_name = _('size')
         verbose_name_plural = _('sizes')
-        ordering = ('updated_at', 'name',)
+        ordering = ('updated_at',)
+
+    def __str__(self):
+        return self.pk
+
+
+class SizeTranslation(models.Model):
+    size = models.ForeignKey(
+        'Size', on_delete=models.CASCADE, related_name='translations')
+    language = models.ForeignKey(
+        'translations.Language', on_delete=models.CASCADE, related_name='sizes')
+    name = models.CharField(_('name'), max_length=100)
+    description = models.TextField(_('description'), blank=True)
+    slug = models.SlugField(_('slug'), max_length=100,
+                            unique=True, editable=False)
+
+    class Meta:
+        verbose_name = _('size translation')
+        verbose_name_plural = _('size translations')
+        ordering = ('-size', 'language',)
+        indexes = [
+            models.Index(fields=['size', 'language']),
+        ]
 
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(SizeTranslation, self).save(*args, **kwargs)
+
 
 class Composition(models.Model):
-    name = models.CharField(_('name'), max_length=100, unique=True)
-    slug = models.SlugField(_('slug'), max_length=100, unique=True)
     is_active = models.BooleanField(_('active'), default=True)
     created_at = models.DateTimeField(_('created at'), default=timezone.now)
     updated_at = models.DateTimeField(_('updated at'), default=timezone.now)
-    description = models.TextField(_('description'), blank=True)
 
     class Meta:
         verbose_name = _('composition')
         verbose_name_plural = _('compositions')
-        ordering = ('updated_at', 'name',)
+        ordering = ('updated_at',)
+
+    def __str__(self):
+        return self.pk
+
+
+class CompositionTranslation(models.Model):
+    composition = models.ForeignKey(
+        'Composition', on_delete=models.CASCADE, related_name='translations')
+    language = models.ForeignKey(
+        'translations.Language', on_delete=models.CASCADE, related_name='compositions')
+    name = models.CharField(_('name'), max_length=100)
+    description = models.TextField(_('description'), blank=True)
+    slug = models.SlugField(_('slug'), max_length=100,
+                            unique=True, editable=False)
+
+    class Meta:
+        verbose_name = _('composition translation')
+        verbose_name_plural = _('composition translations')
+        ordering = ('-composition', 'language',)
+        indexes = [
+            models.Index(fields=['composition', 'language']),
+        ]
 
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(CompositionTranslation, self).save(*args, **kwargs)
+
 
 class Tag(models.Model):
     name = models.CharField(_('name'), max_length=100, unique=True)
-    slug = models.SlugField(_('slug'), max_length=100, unique=True)
+    slug = models.SlugField(_('slug'), max_length=100,
+                            unique=True, editable=False)
     created_at = models.DateTimeField(_('created at'), default=timezone.now)
     updated_at = models.DateTimeField(_('updated at'), default=timezone.now)
 
@@ -227,6 +368,10 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(Tag, self).save(*args, **kwargs)
 
 
 class ProductTag(models.Model):
@@ -253,6 +398,16 @@ class ProductSeo(models.Model):
         _('meta description'), max_length=150, blank=True)
     product = models.OneToOneField(
         'Product', on_delete=models.CASCADE, related_name='seo')
+    language = models.ForeignKey(
+        'translations.Language', on_delete=models.CASCADE, related_name='product_seos')
+    title = models.CharField(_('title'), max_length=150, blank=True)
+
+    class Meta:
+        verbose_name = _('product seo')
+        verbose_name_plural = _('product seos')
+
+    def __str__(self):
+        return self.pk
 
 
 class ProductReview(models.Model):
@@ -275,9 +430,6 @@ class ProductReview(models.Model):
     def __str__(self):
         return self.comment
 
-    def get_absolute_url(self):
-        return reverse('products:detail', kwargs={'slug': self.slug})
-
 
 # area -> technique -> product
 # a product can have many techniques
@@ -285,14 +437,10 @@ class ProductReview(models.Model):
 
 
 class Area(models.Model):
-    name = models.CharField(_('name'), max_length=100, unique=True, help_text=_(
-        'Name of the area to engrave, e.g. "Front" or "Back"'))
-    slug = models.SlugField(_('slug'), max_length=100, unique=True)
     height = models.DecimalField(
         _('height'), max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     width = models.DecimalField(
         _('width'), max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    description = models.TextField(_('description'), blank=True)
     is_active = models.BooleanField(_('active'), default=True)
     created_at = models.DateTimeField(_('created at'), default=timezone.now)
     updated_at = models.DateTimeField(_('updated at'), default=timezone.now)
@@ -300,10 +448,37 @@ class Area(models.Model):
     class Meta:
         verbose_name = _('engraving area')
         verbose_name_plural = _('engraving areas')
-        ordering = ('updated_at', 'name',)
+        ordering = ('updated_at',)
+
+    def __str__(self):
+        return self.pk
+
+
+class AreaTranslation(models.Model):
+    area = models.ForeignKey(
+        'Area', on_delete=models.CASCADE, related_name='translations')
+    language = models.ForeignKey(
+        'translations.Language', on_delete=models.CASCADE, related_name='areas')
+    name = models.CharField(_('name'), max_length=150, unique=True, help_text=_(
+        'Name of the area to engrave, e.g. "Front" or "Back"'))
+    description = models.TextField(_('description'), blank=True)
+    slug = models.SlugField(_('slug'), max_length=100,
+                            unique=True, editable=False)
+
+    class Meta:
+        verbose_name = _('area translation')
+        verbose_name_plural = _('area translations')
+        ordering = ('-area', 'language',)
+        indexes = [
+            models.Index(fields=['area', 'language']),
+        ]
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(AreaTranslation, self).save(*args, **kwargs)
 
 
 class AreaImage(models.Model):
@@ -324,10 +499,6 @@ class AreaImage(models.Model):
 
 
 class Technique(models.Model):
-    name = models.CharField(_('name'), max_length=100, unique=True, help_text=_(
-        'Name of the technique to engrave, e.g. "Laser" or "Embroidery"'))
-    slug = models.SlugField(_('slug'), max_length=100, unique=True)
-    description = models.TextField(_('description'), blank=True)
     is_active = models.BooleanField(_('active'), default=True)
     areas = models.ManyToManyField(
         'Area', related_name='techniques', verbose_name=_('areas'))
@@ -337,10 +508,37 @@ class Technique(models.Model):
     class Meta:
         verbose_name = _('technique')
         verbose_name_plural = _('techniques')
-        ordering = ('updated_at', 'name',)
+        ordering = ('updated_at',)
+
+    def __str__(self):
+        return self.pk
+
+
+class TechniqueTranslation(models.Model):
+    technique = models.ForeignKey(
+        'Technique', on_delete=models.CASCADE, related_name='translations')
+    language = models.ForeignKey(
+        'translations.Language', on_delete=models.CASCADE, related_name='techniques')
+    name = models.CharField(_('name'), max_length=100, unique=True, help_text=_(
+        'Name of the technique to engrave, e.g. "Laser" or "Embroidery"'))
+    description = models.TextField(_('description'), blank=True)
+    slug = models.SlugField(_('slug'), max_length=100,
+                            unique=True, editable=False)
+
+    class Meta:
+        verbose_name = _('technique translation')
+        verbose_name_plural = _('technique translations')
+        ordering = ('-technique', 'language',)
+        indexes = [
+            models.Index(fields=['technique', 'language']),
+        ]
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(TechniqueTranslation, self).save(*args, **kwargs)
 
 
 class ProductEngraving(models.Model):
@@ -365,6 +563,4 @@ class ProductEngraving(models.Model):
         ]
 
     def __str__(self):
-        return self.product.name
-
-    #  price per range, minumun [500, 1000, 2000, 5000, 10000, 20000, +20000] //TODO: add to cart
+        return self.pk
