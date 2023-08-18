@@ -62,7 +62,7 @@ class CustomUserAdmin(UserAdmin):
         # image with link to edit
 
         return format_html(
-            '<a href="{}"><img src="{}" width="50" height="50" /></a>',
+            '<a href="{}"><img src="{}" height="50" /></a>',
             '/admin/users/user/{}/change/'.format(obj.id),
             obj.profile.avatar.url if obj.profile.avatar else '/staticfiles/img/default_avatar.png',
         )

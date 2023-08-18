@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from . import constants as user_constants
 from .managers import UserManager
+from utils.images import compress_image
 
 # Create your models here.
 
@@ -43,9 +44,19 @@ class UserProfile(models.Model):
         _('accepted privacy'), default=False)
     accepted_marketing = models.BooleanField(
         _('accepted marketing'), default=False)
+    verification_token = models.CharField(
+        _('verification token'), max_length=255, blank=True)
 
     def __str__(self):
         return self.user.email
+
+    def save(self, *args, **kwargs):
+        avatar = self.avatar
+        #  if avatar is bigger than 2mb, compress it or if avatar is bigger than 300px, resize it
+        if avatar and avatar.size > 2000000 or avatar.height > 500:
+            self.avatar = compress_image(avatar)
+
+        super().save(*args, **kwargs)
 
 
 class UserAddress(models.Model):

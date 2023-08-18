@@ -17,21 +17,23 @@ class Tranlation(models.Model):
         return self.key
 
 
-class TranslationText(models.Model):
-    translation = models.ForeignKey(Tranlation, on_delete=models.CASCADE)
-    language = models.ForeignKey('Language', on_delete=models.CASCADE)
-    text = models.TextField()
+class TranslationValue(models.Model):
+    key = models.ForeignKey(
+        Tranlation, on_delete=models.CASCADE, related_name='values')
+    language = models.ForeignKey(
+        'Language', on_delete=models.CASCADE, related_name='translations')
+    value = models.TextField()
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ('translation', 'language')
-        verbose_name = _('Translation Text')
-        verbose_name_plural = _('Translation Texts')
+        ordering = ('key', 'language')
+        verbose_name = _('Translation Value')
+        verbose_name_plural = _('Translation Values')
 
     def __str__(self):
-        return self.text
+        return self.value
 
 
 class Language(models.Model):
