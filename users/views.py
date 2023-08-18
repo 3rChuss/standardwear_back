@@ -2,12 +2,55 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import authentication, permissions
-from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, TokenHasScope
+from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
+from oauth2_provider.settings import oauth2_settings
+
+import json
 
 from django.contrib.auth.models import User
+from django.db import transaction
+
 from .models import UserAddress
-from .serializers import UserSerializer, UserAddressSerializer
+from .serializers import UserSerializer, UserAddressSerializer, RegisterSerializer
+
 # Create your views here.
+
+
+"""
+REGISTER
+"""
+
+
+class UserRegisterView(APIView):
+    permission_classes = [permissions.AllowAny]
+    server_class = oauth2_settings.OAUTH2_SERVER_CLASS
+    validator_class = oauth2_settings.OAUTH2_VALIDATOR_CLASS
+    oauthlib_backend_class = oauth2_settings.OAUTH2_BACKEND_CLASS
+    serializer_class = RegisterSerializer
+
+    def post(self, request, format=None):
+        """
+        Register a user \n
+        Create a user instance.
+        """
+        if request.auth is None:
+            serializer = self.serializer_class(data=request.data)
+            if serializer.is_valid():
+                try:
+                    with transaction.atomic():
+                        user = serializer.save()
+                        url, headers, body, token_status = self.create_token_response(
+                            request)
+                        if token_status != 200:
+                            raise Exception(json.loads(body).get(
+                                'error_description', ''))
+                        return Response(json.loads(body), status=status)
+                except Exception as e:
+                    return Response(data={'error': str(e)}, status=token_status)
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_403_FORBIDDEN)
 
 
 class ListUsersView(APIView):
