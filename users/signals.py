@@ -26,10 +26,10 @@ def send_email_verification(sender, instance, created, **kwargs):
                 to_email=instance.email,
                 subject=subject,
                 html_content=render_to_string(
-                    "auth/verify_email.html", {"user": instance,
-                                               "site_name": settings.SITE_NAME,
-                                               "verification_url": f"{settings.EMAIL_VERIFICATION_URL}{instance.profile.verification_token}/"
-                                               }
+                    "emails/auth/verify_email.html", {"user": instance,
+                                                      "site_name": settings.SITE_NAME,
+                                                      "verification_url": f"{settings.EMAIL_VERIFICATION_URL}{instance.profile.verification_token}/"
+                                                      }
                 )
             )
         except Exception as e:
@@ -46,5 +46,5 @@ def send_email_welcome(sender, instance, created, **kwargs):
             to_email=instance.email,
             subject=subject,
             html_content=render_to_string(
-                "auth/welcome_email.html", {"user": instance, "site_name": settings.SITE_NAME, }),
+                "emails/auth/welcome_email.html", {"user": instance, "site_name": settings.SITE_NAME, }),
         )

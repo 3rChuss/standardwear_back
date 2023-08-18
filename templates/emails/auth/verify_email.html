@@ -1,6 +1,13 @@
 {% load mjml %} {% load i18n %} {% mjml %}
 <mjml>
-	<mj-body background-color="#ffffff" font-size="13px">
+	{% comment %} favicon {% endcomment %}
+	<mj-head>
+		<mj-preview
+			>{% blocktranslate %}Welcome aboard to
+			{{site_name}}{%endblocktranslate%}</mj-preview
+		>
+	</mj-head>
+	<mj-body background-color="#ffffff">
 		<mj-section background-color="#ffffff" padding-bottom="0px" padding-top="0">
 			<mj-column vertical-align="top" width="100%">
 				<mj-image
@@ -16,12 +23,7 @@
 				></mj-image>
 			</mj-column>
 		</mj-section>
-		<mj-section
-			background-color="#009FE3"
-			vertical-align="top"
-			padding-bottom="0px"
-			padding-top="0"
-		>
+		<mj-section background-color="#009FE3" padding-bottom="0px" padding-top="0">
 			<mj-column vertical-align="top" width="100%">
 				<mj-text
 					align="left"
@@ -33,8 +35,10 @@
 					padding-right="25px"
 					padding-bottom="30px"
 					padding-top="50px"
-					>{% translate "Welcome aboard" %}</mj-text
 				>
+					{% blocktranslate %}Welcome aboard to
+					{{site_name}}{%endblocktranslate%}
+				</mj-text>
 			</mj-column>
 		</mj-section>
 		<mj-section
@@ -50,11 +54,10 @@
 					font-family="open Sans Helvetica, Arial, sans-serif"
 					padding-left="25px"
 					padding-right="25px"
-					><span style="color: #feeb35">Hello 🖐 {{user.first_name}}</span
+					><span style="color: #feeb35"
+						>{% translate "Hello" %} 🖐 {{user.first_name}}</span
 					><br /><br />
-					{% blocktranslate %}Welcome to {{site_name}}{% endblocktranslate
-					%}</mj-text
-				>
+				</mj-text>
 				<mj-text
 					align="left"
 					color="#ffffff"
@@ -62,11 +65,10 @@
 					font-family="open Sans Helvetica, Arial, sans-serif"
 					padding-left="25px"
 					padding-right="25px"
-					>We&apos;re really excited you&apos;ve decided to give us a try. In
-					case you have any questions, feel free to reach out to us at
-					ContactEmail. You can login to your account with your username
-					UserName</mj-text
-				>
+					>{% blocktranslate %}You have successfully created an account on
+					{{site_name}}. Please click on the button below to login.
+					{%endblocktranslate %}
+				</mj-text>
 				<mj-button
 					align="left"
 					font-size="22px"
@@ -84,11 +86,11 @@
 					font-family="open Sans Helvetica, Arial, sans-serif"
 					padding-left="25px"
 					padding-right="25px"
-					>Thanks, <br />
-					Team</mj-text
 				>
+					{% translate "We are happy to have you on board" %} 🎉
+				</mj-text>
 			</mj-column>
 		</mj-section>
 	</mj-body>
 </mjml>
-{% mjml %}
+{% endmjml %}

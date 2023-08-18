@@ -1,5 +1,12 @@
 {% load mjml %} {% load i18n %} {% mjml %}
 <mjml>
+	{% comment %} favicon {% endcomment %}
+	<mj-head>
+		<mj-preview
+			>{% blocktranslate %}Welcome aboard to
+			{{site_name}}{%endblocktranslate%}</mj-preview
+		>
+	</mj-head>
 	<mj-body background-color="#ffffff">
 		<mj-section background-color="#ffffff" padding-bottom="0px" padding-top="0">
 			<mj-column vertical-align="top" width="100%">

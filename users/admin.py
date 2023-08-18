@@ -64,7 +64,7 @@ class CustomUserAdmin(UserAdmin):
         return format_html(
             '<a href="{}"><img src="{}" height="50" /></a>',
             '/admin/users/user/{}/change/'.format(obj.id),
-            obj.profile.avatar.url if obj.profile.avatar else '/staticfiles/img/default_avatar.png',
+            obj.profile.avatar.url if obj.profile.avatar else '/static/img/default_avatar.png',
         )
 
     get_avatar.short_description = 'Avatar'
