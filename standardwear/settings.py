@@ -32,37 +32,44 @@ LOGIN_URL = '/admin/login/'
 
 
 # Application definition
-
-INSTALLED_APPS = [
+DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+]
 
-    # third party
+THIRD_PARTY_APPS = [
     'mjml',
     'rest_framework',
+    "corsheaders",
     'drf_yasg',
     'oauth2_provider',
+]
 
-    # apps
+PROJECT_APPS = [
     'users',
     'products',
     'gallery',
     'translations',
 ]
 
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PROJECT_APPS
+
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    'users.middleware.LastLoginMiddleware',
 ]
 
 
@@ -73,7 +80,25 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_PAGINATION_CLASS':
+        'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 16,
 }
+
+# oauth2_provider
+OAUTH2_PROVIDER = {
+    "OIDC_ENABLED": True,
+    "OIDC_RSA_PRIVATE_KEY": config('OIDC_RSA_PRIVATE_KEY'),
+    "SCOPES": {
+        "all": "all scopes"
+    },
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 3600,
+    'REFRESH_TOKEN_EXPIRE_SECONDS': 3600 * 24 * 365,
+}
+
+
+# FILES
+FILE_UPLOAD_PERMISSIONS = 0o640
 
 # Cache
 CACHES = {
@@ -93,6 +118,25 @@ CACHES = {
 
 # Cache time
 CACHE_TTL = 60 * 60 * 24  # in seconds: 60 * 60 * 24 = 1 day
+
+
+# CORS
+CORS_ORIGIN_WHITELIST = (
+    'http://localhost:3000',
+    'http://localhost:8000',
+)
+
+CSRF_TRUSTED_ORIGINS = (
+    'http://localhost:3000',
+    'http://localhost:8000',
+)
+# CSRF_COOKIE_DOMAIN = 'standar-dwear.com'
+
+
+# RENDER
+RENDER_EXTERNAL_HOST = config('RENDER_EXTERNAL_HOST')
+if RENDER_EXTERNAL_HOST:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOST)
 
 
 # SWAGGER
@@ -128,7 +172,7 @@ EMAIL_VERIFICATION_URL = config('EMAIL_VERIFICATION_URL')
 
 
 MJML_BACKEND_MODE = "cmd"
-MJML_EXEC_CMD = os.path.join(BASE_DIR, 'node_modules/.bin/mjml.cmd')
+MJML_EXEC_CMD = os.path.join(BASE_DIR, 'node_modules/.bin/mjml')
 
 
 LOCALE_PATHS = (
@@ -140,7 +184,7 @@ ROOT_URLCONF = 'standardwear.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
+        'DIRS': ['templates', os.path.join(config('FRONT_END_PATH'), 'build')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -160,20 +204,28 @@ WSGI_APPLICATION = 'standardwear.wsgi.application'
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
 DATABASES = {
-
     'default': {
         'ENGINE': config('DB_ENGINE'),
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASS'),
         'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT')
+        'PORT': config('DB_PORT'),
+        'ATOMIC_REQUESTS': True,
     }
 }
 
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
+
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+    "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
+    "django.contrib.auth.hashers.ScryptPasswordHasher",
+]
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -219,4 +271,5 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'staticfiles'),
+    os.path.join(config('FRONT_END_PATH'), 'build/static'),
 ]

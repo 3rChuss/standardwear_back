@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html
 
 from django.contrib.auth.admin import UserAdmin
-from .models import UserProfile, User, UserAddress, UserMembership
+from .models import UserProfile, User, UserAddress, UserMembership, UserLogin
 from .forms import CustomUserCreationForm, CustomUserChangeForm
 from . import constants as user_constants
 
@@ -110,3 +110,4 @@ class CustomMembershipAdmin(admin.ModelAdmin):
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(UserAddress, CustomUserAddressAdmin)
 admin.site.register(UserMembership, CustomMembershipAdmin)
+admin.site.register(UserLogin)

@@ -16,8 +16,9 @@ Including another URLconf
 from decouple import config
 from django.conf import settings
 from django.conf.urls import include
+from django.views.generic import TemplateView
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, re_path
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -53,3 +54,8 @@ if settings.DEBUG:
                           document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL,
                           document_root=settings.STATIC_ROOT)
+
+# if not settings.DEBUG:
+# urlpatterns += [
+#     re_path(r'^.*', TemplateView.as_view(template_name='index.html')),
+# ]

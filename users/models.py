@@ -107,3 +107,26 @@ class UserMembership(models.Model):
             return True
         else:
             return False
+
+
+class UserLogin(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='logins')
+    ip = models.CharField(_('ip'), max_length=255)
+    device_info = models.CharField(_('device'), max_length=255)
+    created_at = models.DateTimeField(
+        _('created at'), default=timezone.now)
+    is_active = models.BooleanField(_('active'), default=True)
+
+    class Meta:
+        verbose_name = _('login')
+        verbose_name_plural = _('logins')
+        ordering = ('-created_at',)
+
+    def __str__(self):
+        return self.user.email
+
+    def save(self, *args, **kwargs):
+        if self.is_active:
+            self.user.logins.filter(is_active=True).update(is_active=False)
+        super().save(*args, **kwargs)
