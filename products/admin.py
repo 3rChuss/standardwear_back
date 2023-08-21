@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import Product, ProductVariant, Category, Tag, CategoryImage, Color, Size, ProductImage, ProductSeo, ProductTranslation, CategoryTranslation, ProductVariantTranslation, ColorTranslation, SizeTranslation, AreaTranslation
+from .models import Product, ProductVariant, Category, Tag, CategoryImage, Color, Size, ProductImage, ProductSeo, ProductTranslation, CategoryTranslation, ProductVariantTranslation, ColorTranslation, SizeTranslation, AreaTranslation, Technique, TechniqueTranslation, ProductEngraving
 
 
 admin.site.register(Product)
@@ -20,3 +20,6 @@ admin.site.register(ProductVariantTranslation)
 admin.site.register(ColorTranslation)
 admin.site.register(SizeTranslation)
 admin.site.register(AreaTranslation)
+admin.site.register(Technique)
+admin.site.register(TechniqueTranslation)
+admin.site.register(ProductEngraving)
