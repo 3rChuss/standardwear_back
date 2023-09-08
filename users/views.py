@@ -14,6 +14,43 @@ from .serializers import UserSerializer, UserAddressSerializer, RegisterSerializ
 
 # Create your views here.
 
+"""
+LOGIN
+"""
+class UserLoginView(APIView):
+    permissions_classes = [permissions.AllowAny]
+
+    def post(self, request, format=None):
+        """
+        Login a user \n
+        Return a token.
+        """
+        # check if body
+        if not request.data:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        # check if user exists
+        try:
+            user = User.objects.get(email=request.data['email'])
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        # check if user is active
+        if not user.is_active:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        # check if password is correct
+        if not user.check_password(request.data['password']):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        # generate token
+        token = user.auth_token.key
+
+        # return token
+        return Response(data={'token': token}, status=status.HTTP_200_OK)
+
+
+
 
 """
 REGISTER
