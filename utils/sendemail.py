@@ -11,6 +11,7 @@ def send_email(
         files_to_attach: list = None,
 ) -> None:
     try:
+        #TODO: Sender email should be a variable in settings, not hardcoded and can be changed in admin
         sender_email = f'{_("Standard-Wear - Tu tienda de Merchandasing ECOlogica")} <{settings.EMAIL_HOST_USER}>'
         headers = {'Reply-To': sender_email, 'format': 'flowed'}
         msg = EmailMultiAlternatives(
