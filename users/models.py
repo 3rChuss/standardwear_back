@@ -36,8 +36,8 @@ class UserProfile(models.Model):
     created_at = models.DateTimeField(_('created at'), default=timezone.now)
     updated_at = models.DateTimeField(_('updated at'), default=timezone.now)
     language = models.ForeignKey(
-        'translations.Language', on_delete=models.DO_NOTHING, related_name='user_profiles', null=True, blank=True)
-    avatar = models.ImageField(_('avatar'), upload_to=upload_to, blank=True)
+        'translations.Language', on_delete=models.DO_NOTHING, related_name='user_profiles', null=False, blank=False, default=1)
+    avatar = models.ImageField(_('avatar'), upload_to=upload_to, blank=True, null=True)
     nie = models.CharField(_('nie'), max_length=9, blank=True)
     accepted_terms = models.BooleanField(_('accepted terms'), default=False)
     accepted_privacy = models.BooleanField(
@@ -51,12 +51,14 @@ class UserProfile(models.Model):
         return self.user.email
 
     def save(self, *args, **kwargs):
-        avatar = self.avatar
-        #  if avatar is bigger than 2mb, compress it or if avatar is bigger than 300px, resize it
-        if avatar and avatar.size > 2000000 or avatar.height > 500:
-            self.avatar = compress_image(avatar)
+        if self.avatar:
+            avatar = self.avatar
+            #  if avatar is bigger than 2mb, compress it or if avatar is bigger than 300px, resize it
+            if avatar and avatar.size > 2000000 or avatar.height > 500:
+                self.avatar = compress_image(avatar)
 
         super().save(*args, **kwargs)
+
 
 
 class UserAddress(models.Model):

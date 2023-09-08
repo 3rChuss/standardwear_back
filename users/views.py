@@ -3,7 +3,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import authentication, permissions
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
-from oauth2_provider.settings import oauth2_settings
 
 import json
 
@@ -23,9 +22,6 @@ REGISTER
 
 class UserRegisterView(APIView):
     permission_classes = [permissions.AllowAny]
-    server_class = oauth2_settings.OAUTH2_SERVER_CLASS
-    validator_class = oauth2_settings.OAUTH2_VALIDATOR_CLASS
-    oauthlib_backend_class = oauth2_settings.OAUTH2_BACKEND_CLASS
     serializer_class = RegisterSerializer
 
     def post(self, request, format=None):
@@ -33,20 +29,23 @@ class UserRegisterView(APIView):
         Register a user \n
         Create a user instance.
         """
+        # check if body
+        if not request.data:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
         if request.auth is None:
             serializer = self.serializer_class(data=request.data)
             if serializer.is_valid():
                 try:
                     with transaction.atomic():
                         user = serializer.save()
-                        url, headers, body, token_status = self.create_token_response(
-                            request)
-                        if token_status != 200:
-                            raise Exception(json.loads(body).get(
-                                'error_description', ''))
-                        return Response(json.loads(body), status=status)
+                        user.set_password(serializer.validated_data['password'])
+                        user.save()
+                        return Response(
+                            status=status.HTTP_201_CREATED)
+                        
                 except Exception as e:
-                    return Response(data={'error': str(e)}, status=token_status)
+                    return Response(data={'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

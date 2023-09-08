@@ -1,4 +1,7 @@
 # users/admin.py
+import os
+from django.conf import settings
+
 from django.contrib import admin
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -62,10 +65,12 @@ class CustomUserAdmin(UserAdmin):
         # image with link to edit
 
         return format_html(
-            '<a href="{}"><img src="{}" height="50" /></a>',
+            '<a href="{}"><img src="{}" height="40" /></a>',
             '/admin/users/user/{}/change/'.format(obj.id),
-            obj.profile.avatar.url if obj.profile.avatar else '/static/img/default_avatar.png',
+            obj.profile.avatar.url if obj.profile.avatar else os.path.join(settings.STATIC_URL, 'images', 'default-avatar.png')
+
         )
+
 
     get_avatar.short_description = 'Avatar'
 
