@@ -5,7 +5,7 @@ from django.conf import settings
 
 
 def send_email(
-        to_email: str,
+        recipient_list: list,
         subject: str,
         html_content: str,
         files_to_attach: list = None,
@@ -15,7 +15,7 @@ def send_email(
         sender_email = f'{_("Standard-Wear - Tu tienda de Merchandasing ECOlogica")} <{settings.EMAIL_HOST_USER}>'
         headers = {'Reply-To': sender_email, 'format': 'flowed'}
         msg = EmailMultiAlternatives(
-            subject, from_email=sender_email, to=[to_email], headers=headers)
+            subject, from_email=sender_email, to=recipient_list, headers=headers)
 
         msg.attach_alternative(html_content, "text/html")
 
@@ -32,7 +32,7 @@ def send_email(
     except Exception as e:
         # send error to admin
         error_email = f'{_("Error sending email")}: {e} \n\n' \
-                      f'{_("To")}: {to_email} \n' \
+                      f'{_("To")}: {recipient_list.join(", ")} \n' \
                       f'{_("Subject")}: {subject} \n' \
                       f'{_("Content")}: {html_content} \n' \
                       f'{_("Files")}: {files_to_attach} \n'

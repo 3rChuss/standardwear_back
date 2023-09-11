@@ -44,6 +44,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     'mjml',
     'rest_framework',
+    'django_filters',
     "corsheaders",
     'drf_yasg',
     'oauth2_provider',
@@ -85,6 +86,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 16,
+
+     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
 # oauth2_provider
@@ -275,3 +278,8 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'staticfiles'),
     os.path.join(config('FRONT_END_PATH'), 'build/static'),
 ]
+
+
+# Celery settings
+CELERY_BROKER_URL = "redis://localhost:6379"
+CELERY_RESULT_BACKEND = "redis://localhost:6379"

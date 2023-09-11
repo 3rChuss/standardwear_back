@@ -7,9 +7,8 @@ from django.dispatch import receiver
 from django.conf import settings
 from django.utils import timezone
 
-from utils.sendemail import send_email
-
 from .models import UserProfile, User, UserLogin
+from .tasks import send_email_task
 
 
 @receiver(post_save, sender=User)
@@ -30,8 +29,8 @@ def send_email_verification(sender, instance, created, **kwargs):
             "Verify your email address on %(site_name)s") % {"site_name": settings.SITE_NAME}
 
         try:
-            send_email(
-                to_email=instance.email,
+            send_email_task(
+                [instance.email],
                 subject=subject,
                 html_content=render_to_string(
                     "emails/auth/verify_email.html", {"user": instance,
@@ -50,8 +49,8 @@ def send_email_welcome(sender, instance, created, **kwargs):
         subject = _(
             "Welcome to %(site_name)s") % {"site_name": settings.SITE_NAME}
 
-        send_email(
-            to_email=instance.email,
+        send_email_task.delay(
+            [instance.email],
             subject=subject,
             html_content=render_to_string(
                 "emails/auth/welcome_email.html", {"user": instance, "site_name": settings.SITE_NAME, }),
